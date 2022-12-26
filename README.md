@@ -118,7 +118,7 @@ This value is used if you don't set any other for them.
 #[engineer(engineer_name = "IdentityBuilder", builder_func = "new")]
 struct Identity {
     // ~~~ sniff ~~~
-    #[engineer(default = "\"fa\".to_string()")]
+    #[engineer(default_value = "\"fa\".to_string()")]
     lang_code: Option<String>,
 }
 
@@ -127,6 +127,15 @@ struct Identity {
     let identity = Identity::new(0, "immmdreza".to_string());
 
     identity.lang_code // Some("fa")
+```
+
+Alternatively, you can use `default` to set `Some(Default::default)` instead of None if any other value is not given.
+
+```rust
+    // ~~~ sniff ~~~
+    #[engineer(default)]
+    luck_number: Option<i32>, // Some(0)
+    // ~~~ sniff ~~~
 ```
 
 ### Retype
@@ -181,7 +190,7 @@ struct Identity {
     #[engineer(str_retype)]
     last_name: Option<String>,
 
-    #[engineer(str_retype, default = "\"fa\".to_string()")]
+    #[engineer(str_retype, default_value = "\"fa\".to_string()")]
     lang_code: Option<String>,
 }
 ```

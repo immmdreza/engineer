@@ -29,9 +29,10 @@ struct EngineerField {
     ident: Option<syn::Ident>,
     ty: syn::Type,
 
-    default: Option<String>,
+    default_value: Option<String>,
     retype: Option<Retype>,
 
+    default: Flag,
     /// Shorthand for `retype(to = "&str", re = ".to_string()")`,
     str_retype: Flag,
 }
@@ -40,6 +41,10 @@ impl EngineerField {
     fn apply_shorthands(&mut self) {
         if self.str_retype.is_present() {
             self.retype = Some(Retype::new("&str", ".to_string()"))
+        }
+
+        if self.default.is_present() {
+            self.default_value = Some("Default::default()".to_string())
         }
     }
 
@@ -220,7 +225,7 @@ impl<'e> EngineerStructDefinition<'e> {
         let opt_values = fields
             .iter()
             .filter(|f| f.is_option())
-            .map(|f| match &f.default {
+            .map(|f| match &f.default_value {
                 Some(sec) => {
                     let t = sec.parse::<proc_macro2::TokenStream>().unwrap();
                     quote!(Some(#t))
