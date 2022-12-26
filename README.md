@@ -4,6 +4,17 @@ Engineer is a master builder based on `Optional`.
 
 It just generates an Engineer (Builder) class for a data model.
 
+## Installation
+
+Add following as dependencies
+
+```toml
+[dependencies]
+engineer = "0.1.0"
+```
+
+## Get Started
+
 ```rust
 use engineer::Engineer;
 
