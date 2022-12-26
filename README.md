@@ -10,7 +10,7 @@ Add following as dependencies
 
 ```toml
 [dependencies]
-engineer = "0.1.0"
+engineer = "0.1.1"
 ```
 
 ## Get Started

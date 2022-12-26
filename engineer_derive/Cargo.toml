@@ -2,13 +2,16 @@
 name = "engineer_derive"
 description = "The engineer is a master builder! And this's it's derive."
 authors = ["immmdreza MohammadReza"]
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 homepage = "https://github.com/immmdreza/engineer"
 documentation = "https://github.com/immmdreza/engineer"
 repository = "https://github.com/immmdreza/engineer"
 readme = "../README.md"
+workspace = ".."
+keywords = ["rust", "builder", "crate", "option", "codegen"]
+categories = ["data-structures", "rust-patterns"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
