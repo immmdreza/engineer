@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+    "engineer",
+    "engineer_derive",
+    "examples/basic",
+]
