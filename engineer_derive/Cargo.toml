@@ -2,7 +2,7 @@
 name = "engineer_derive"
 description = "The engineer is a master builder! And this's it's derive."
 authors = ["immmdreza MohammadReza"]
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 homepage = "https://github.com/immmdreza/engineer"

@@ -10,7 +10,7 @@ Add following as dependencies
 
 ```toml
 [dependencies]
-engineer = "0.1.1"
+engineer = "0.1.2"
 ```
 
 ## Get Started
@@ -118,7 +118,7 @@ This value is used if you don't set any other for them.
 #[engineer(engineer_name = "IdentityBuilder", builder_func = "new")]
 struct Identity {
     // ~~~ sniff ~~~
-    #[engineer(default = "\"fa\".to_string()")]
+    #[engineer(default_value = "\"fa\".to_string()")]
     lang_code: Option<String>,
 }
 
@@ -127,6 +127,15 @@ struct Identity {
     let identity = Identity::new(0, "immmdreza".to_string());
 
     identity.lang_code // Some("fa")
+```
+
+Alternatively, you can use `default` to set `Some(Default::default)` instead of None if any other value is not given.
+
+```rust
+    // ~~~ sniff ~~~
+    #[engineer(default)]
+    luck_number: Option<i32>, // Some(0)
+    // ~~~ sniff ~~~
 ```
 
 ### Retype
@@ -155,6 +164,15 @@ struct Identity {
     // ~~~ sniff ~~~
 ```
 
+Alternatively, for str retypes (like example above), you can use a shorthand `str_retype`.
+
+```rust
+    // ~~~ sniff ~~~
+    #[engineer(str_retype)]
+    username: String,
+    // ~~~ sniff ~~~
+```
+
 Final result
 
 ```rust
@@ -163,19 +181,16 @@ Final result
 struct Identity {
     id: usize,
 
-    #[engineer(retype(to = "&str", re = ".to_string()"))]
+    #[engineer(str_retype)]
     username: String,
 
-    #[engineer(retype(to = "&str", re = ".to_string()"))]
+    #[engineer(str_retype)]
     first_name: Option<String>,
 
-    #[engineer(retype(to = "&str", re = ".to_string()"))]
+    #[engineer(str_retype)]
     last_name: Option<String>,
 
-    #[engineer(
-        retype(to = "&str", re = ".to_string()"),
-        default = "\"fa\".to_string()"
-    )]
+    #[engineer(str_retype, default_value = "\"fa\".to_string()")]
     lang_code: Option<String>,
 }
 ```
