@@ -1,7 +1,7 @@
 extern crate proc_macro;
 extern crate proc_macro2;
 
-use darling::{FromDeriveInput, FromField, FromMeta, ToTokens};
+use darling::{util::Flag, FromDeriveInput, FromField, FromMeta, ToTokens};
 use proc_macro::TokenStream;
 
 use quote::{format_ident, quote};
@@ -14,6 +14,15 @@ struct Retype {
     restore: String,
 }
 
+impl Retype {
+    fn new(to: &str, restore: &str) -> Self {
+        Self {
+            to: to.to_string(),
+            restore: restore.to_string(),
+        }
+    }
+}
+
 #[derive(FromField, Clone, Debug)]
 #[darling(attributes(engineer), forward_attrs(allow, doc, cfg))]
 struct EngineerField {
@@ -22,9 +31,18 @@ struct EngineerField {
 
     default: Option<String>,
     retype: Option<Retype>,
+
+    /// Shorthand for `retype(to = "&str", re = ".to_string()")`,
+    str_retype: Flag,
 }
 
 impl EngineerField {
+    fn apply_shorthands(&mut self) {
+        if self.str_retype.is_present() {
+            self.retype = Some(Retype::new("&str", ".to_string()"))
+        }
+    }
+
     fn is_option(&self) -> bool {
         type_is_option(&self.ty)
     }
@@ -103,9 +121,19 @@ struct EngineerOptions {
 impl EngineerOptions {
     fn from_derive_input_delegate(input: &DeriveInput) -> Result<EngineerOptions, darling::Error> {
         let mut s = Self::from_derive_input(input)?;
+        s = s.apply_fields_shorthands();
         s.set_fields_ref();
 
         Ok(s)
+    }
+
+    fn apply_fields_shorthands(mut self) -> EngineerOptions {
+        self.data = self.data.map_struct_fields(|mut f| {
+            f.apply_shorthands();
+            f
+        });
+
+        self
     }
 
     fn set_fields_ref(&mut self) {

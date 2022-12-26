@@ -155,6 +155,15 @@ struct Identity {
     // ~~~ sniff ~~~
 ```
 
+Alternatively, for str retypes (like example above), you can use a shorthand `str_retype`.
+
+```rust
+    // ~~~ sniff ~~~
+    #[engineer(str_retype)]
+    username: String,
+    // ~~~ sniff ~~~
+```
+
 Final result
 
 ```rust
@@ -163,19 +172,16 @@ Final result
 struct Identity {
     id: usize,
 
-    #[engineer(retype(to = "&str", re = ".to_string()"))]
+    #[engineer(str_retype)]
     username: String,
 
-    #[engineer(retype(to = "&str", re = ".to_string()"))]
+    #[engineer(str_retype)]
     first_name: Option<String>,
 
-    #[engineer(retype(to = "&str", re = ".to_string()"))]
+    #[engineer(str_retype)]
     last_name: Option<String>,
 
-    #[engineer(
-        retype(to = "&str", re = ".to_string()"),
-        default = "\"fa\".to_string()"
-    )]
+    #[engineer(str_retype, default = "\"fa\".to_string()")]
     lang_code: Option<String>,
 }
 ```
