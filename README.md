@@ -149,11 +149,11 @@ You can change types requested in builder processes.
 #[engineer(builder_func = "new")]
 struct Identity {
     // ~~~ sniff ~~~
-    #[engineer(retype(to = "&str", re = ".to_string()"))]
-    //                      ^            ^
+    #[engineer(retype(to = "impl Into<String>", re = ".into()"))]
+    //                      ^                         ^
     //                      | Requested type in public.
-    //                                   |
-    //                                   | How we recover to original type.
+    //                                                |
+    //                                                | How we recover to original type.
     username: String,
     // ~~~ sniff ~~~
 }

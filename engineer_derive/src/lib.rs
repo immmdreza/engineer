@@ -33,14 +33,14 @@ struct EngineerField {
     retype: Option<Retype>,
 
     default: Flag,
-    /// Shorthand for `retype(to = "&str", re = ".to_string()")`,
+    /// Shorthand for `retype(to = "impl Into<String>", re = ".into()")`,
     str_retype: Flag,
 }
 
 impl EngineerField {
     fn apply_shorthands(&mut self) {
         if self.str_retype.is_present() {
-            self.retype = Some(Retype::new("&str", ".to_string()"))
+            self.retype = Some(Retype::new("impl Into<String>", ".into()"))
         }
 
         if self.default.is_present() {
@@ -217,6 +217,7 @@ impl<'e> EngineerStructDefinition<'e> {
 
     fn new_func(&self) -> proc_macro2::TokenStream {
         let engineer_name = self.name();
+        let vis = &self.0.vis;
 
         let fields = self.0.fields_ref();
         let nrm_fields = fields.iter().filter_normals();
@@ -237,7 +238,7 @@ impl<'e> EngineerStructDefinition<'e> {
         let struct_setters = nrm_fields.iter().map(|f| f.as_struct_setter());
 
         quote! {
-            pub fn new(#(#func_args)*) -> Self {
+            #vis fn new(#(#func_args)*) -> Self {
                 #engineer_name {
                     #(
                         #struct_setters,
@@ -252,6 +253,8 @@ impl<'e> EngineerStructDefinition<'e> {
     }
 
     fn opt_setters(&self) -> proc_macro2::TokenStream {
+        let vis = &self.0.vis;
+
         let fields = self.0.fields();
         let opt_fields = fields.iter().filter(|f| f.is_option());
         let opt_names = opt_fields.clone().map(|f| &f.ident);
@@ -261,7 +264,7 @@ impl<'e> EngineerStructDefinition<'e> {
 
         quote! {
             #(
-                pub fn #opt_names(mut self, #opt_names: #opt_types) -> Self {
+                #vis fn #opt_names(mut self, #opt_names: #opt_types) -> Self {
                     self.#opt_names = Some(#opt_names #opt_restores);
                     self
                 }
@@ -271,12 +274,13 @@ impl<'e> EngineerStructDefinition<'e> {
 
     fn done_func(&self) -> proc_macro2::TokenStream {
         let name = self.0.ident.clone();
+        let vis = &self.0.vis;
 
         let fields = self.0.fields();
         let names = fields.iter().map(|f| &f.ident);
 
         quote! {
-            pub fn done(self) -> #name {
+            #vis fn done(self) -> #name {
                 #name {
                     #(
                         #names: self.#names,
@@ -321,6 +325,7 @@ impl<'e> StructImpl<'e> {
     fn builder_func(&self) -> proc_macro2::TokenStream {
         let engineer_name = self.0.engineer_name();
         let builder_name = self.0.builder_name();
+        let vis = &self.0.vis;
 
         let fields = self.0.fields();
         let nrm_fields = fields.iter().filter(|f| !f.is_option());
@@ -329,7 +334,7 @@ impl<'e> StructImpl<'e> {
         let func_args = nrm_fields.clone().map(|f| f.as_func_argument());
 
         quote! {
-            fn #builder_name(#(#func_args)*) -> #engineer_name {
+            #vis fn #builder_name(#(#func_args)*) -> #engineer_name {
                 <#engineer_name>::new(#(#nrm_names,)*)
             }
         }
