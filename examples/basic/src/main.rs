@@ -2,12 +2,12 @@ use engineer::*;
 
 #[allow(dead_code)]
 #[derive(Debug, Engineer)]
-#[engineer(builder_func = "new", str_retype)]
+#[engineer(new, str_retype)]
 struct User {
     id: usize,
     username: String,
     first_name: String,
-    #[engineer(default_value = "\"fa\".to_string()")]
+    #[engineer(default_value = r#"String::from("fa")"#)]
     lang_code: Option<String>,
     #[engineer(default)]
     error_code: Option<i8>,

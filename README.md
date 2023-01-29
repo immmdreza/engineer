@@ -77,7 +77,7 @@ The name of builder function is `engineer` by default, but guess what?
 // ~~~ sniff ~~~
 
 #[derive(Engineer)]
-#[engineer(engineer_name = "IdentityBuilder", builder_func = "builder")]
+#[engineer(builder_func = "builder")]
 struct Identity {
     // ~~~ sniff ~~~
 }
@@ -94,7 +94,7 @@ You want to use this as `new` function:
 // ~~~ sniff ~~~
 
 #[derive(Engineer)]
-#[engineer(engineer_name = "IdentityBuilder", builder_func = "new")]
+#[engineer(builder_func = "new")]
 struct Identity {
     // ~~~ sniff ~~~
 }
@@ -103,6 +103,16 @@ struct Identity {
 
     let identity = Identity::new(0, "immmdreza".to_string())
     // ~~~ sniff ~~~
+```
+
+This can be simplified for special `new` name as builder function:
+
+```rust
+#[derive(Engineer)]
+#[engineer(new)]
+struct Identity {
+    // ~~~ sniff ~~~
+}
 ```
 
 ### Default value for Options
@@ -115,10 +125,10 @@ This value is used if you don't set any other for them.
 // ~~~ sniff ~~~
 
 #[derive(Engineer)]
-#[engineer(engineer_name = "IdentityBuilder", builder_func = "new")]
+#[engineer(new)]
 struct Identity {
     // ~~~ sniff ~~~
-    #[engineer(default_value = "\"fa\".to_string()")]
+    #[engineer(default_value = r#"String::from("fa")"#)]
     lang_code: Option<String>,
 }
 
@@ -146,7 +156,7 @@ You can change types requested in builder processes.
 // ~~~ sniff ~~~
 
 #[derive(Engineer)]
-#[engineer(builder_func = "new")]
+#[engineer(new)]
 struct Identity {
     // ~~~ sniff ~~~
     #[engineer(retype(to = "impl Into<String>", re = ".into()"))]
@@ -177,7 +187,7 @@ Also you can use retypes globally.
 
 ```rust
 #[derive(Engineer)]
-#[engineer(builder_func = "new", retype(from = "String", to = "impl Into<String>", re = ".into()"))]
+#[engineer(new, retype(from = "String", to = "impl Into<String>", re = ".into()"))]
 struct Identity {
     // ~~~ sniff ~~~
 }
@@ -187,7 +197,7 @@ Or additionally for String retypes:
 
 ```rust
 #[derive(Engineer)]
-#[engineer(builder_func = "new", str_retype)]
+#[engineer(new, str_retype)]
 struct Identity {
     // ~~~ sniff ~~~
 }
@@ -199,7 +209,7 @@ Final result
 
 ```rust
 #[derive(Engineer)]
-#[engineer(builder_func = "new", str_retype)]
+#[engineer(new, str_retype)]
 struct Identity {
     id: usize,
     username: String,

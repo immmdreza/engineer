@@ -130,6 +130,7 @@ struct EngineerOptions {
     #[darling(multiple, rename = "retype")]
     retypes: Vec<GlobRetype>,
     str_retype: Flag,
+    new: Flag,
 
     #[darling(skip)]
     fields_ref: Option<Vec<EngineerField>>,
@@ -154,6 +155,10 @@ impl EngineerOptions {
                 to: "impl Into<String>".to_string(),
                 restore: ".into()".to_string(),
             })
+        }
+
+        if self.new.is_present() {
+            self.builder_func = Some("new".to_string());
         }
 
         self
