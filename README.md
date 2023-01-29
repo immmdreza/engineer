@@ -173,25 +173,58 @@ Alternatively, for str retypes (like example above), you can use a shorthand `st
     // ~~~ sniff ~~~
 ```
 
+Also you can use retypes globally.
+
+```rust
+#[derive(Engineer)]
+#[engineer(builder_func = "new", retype(from = "String", to = "impl Into<String>", re = ".into()"))]
+struct Identity {
+    // ~~~ sniff ~~~
+}
+```
+
+Or additionally for String retypes:
+
+```rust
+#[derive(Engineer)]
+#[engineer(builder_func = "new", str_retype)]
+struct Identity {
+    // ~~~ sniff ~~~
+}
+```
+
+Both codes above will retype **all** `String` fields into `impl Into<String>` in public api.
+
 Final result
 
 ```rust
 #[derive(Engineer)]
-#[engineer(builder_func = "new")]
+#[engineer(builder_func = "new", str_retype)]
 struct Identity {
     id: usize,
-
-    #[engineer(str_retype)]
     username: String,
-
-    #[engineer(str_retype)]
-    first_name: Option<String>,
-
-    #[engineer(str_retype)]
+    first_name: String,
     last_name: Option<String>,
-
     #[engineer(str_retype, default_value = "\"fa\".to_string()")]
     lang_code: Option<String>,
+}
+
+fn main() {
+    let ident: Identity = Identity::new(1, "immmdreza", "Arash")
+        .last_name("Tofani")
+        .into();
+
+    // Identity {
+    //     id: 1,
+    //     username: "immmdreza",
+    //     first_name: "Arash",
+    //     last_name: Some(
+    //         "Tofani",
+    //     ),
+    //     lang_code: Some(
+    //         "fa",
+    //     ),
+    // }
 }
 ```
 
