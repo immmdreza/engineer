@@ -209,11 +209,15 @@ struct Identity {
     lang_code: Option<String>,
 }
 
-fn main() {
-    let ident: Identity = Identity::new(1, "immmdreza", "Arash")
-        .last_name("Tofani")
-        .into();
+fn print_identity(ident: impl Into<Identity>) {
+    let ident: Identity = ident.into();
+    println!("{ident:#?}");
+}
 
+fn main() {
+    let ident = Identity::new(1, "immmdreza", "Arash").last_name("Tofani");
+
+    print_identity(ident);
     // Identity {
     //     id: 1,
     //     username: "immmdreza",

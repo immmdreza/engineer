@@ -25,16 +25,19 @@ struct Identity {
     lang_code: Option<String>,
 }
 
+fn print_identity(ident: impl Into<Identity>) {
+    let ident: Identity = ident.into();
+    println!("{ident:#?}");
+}
+
 fn main() {
     let user_1: User = User::new(0_usize, "immmdreza", "MohammadReza").into();
 
     let user_2 = User::new(1_usize, "jwfly", "Jwfly").lang_code("en").done();
 
-    let ident: Identity = Identity::new(1, "immmdreza", "Arash")
-        .last_name("Tofani")
-        .into();
+    let ident = Identity::new(1, "immmdreza", "Arash").last_name("Tofani");
 
-    println!("{ident:#?}");
+    print_identity(ident);
 
     println!("User 1: {:?}", user_1);
     // User 1: User { id: 0, username: "immmdreza", first_name: "MohammadReza", lang_code: Some("fa"), error_code: Some(0) }
