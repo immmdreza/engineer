@@ -21,7 +21,7 @@ struct Identity {
     username: String,
     first_name: String,
     last_name: Option<String>,
-    #[engineer(str_retype, default_value = r#"String::from("fa")"#)]
+    #[engineer(default_value = r#"String::from("fa")"#)]
     lang_code: Option<String>,
 }
 
