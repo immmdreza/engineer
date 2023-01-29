@@ -16,7 +16,7 @@ struct User {
 }
 
 fn main() {
-    let user_1 = User::new(0_usize, "immmdreza", "MohammadReza").done();
+    let user_1: User = User::new(0_usize, "immmdreza", "MohammadReza").into();
 
     let user_2 = User::new(1_usize, "jwfly", "Jwfly").lang_code("en").done();
 

@@ -219,6 +219,13 @@ impl<'e> EngineerStructDefinition<'e> {
                     self.__done()
                 }
             }
+
+            impl From<#engineer_name> for #struct_name
+            {
+                fn from(value: #engineer_name) -> Self {
+                    value.done()
+                }
+            }
         }
     }
 
@@ -281,7 +288,6 @@ impl<'e> EngineerStructDefinition<'e> {
 
     fn done_func(&self) -> proc_macro2::TokenStream {
         let name = &self.0.ident;
-        let vis = &self.0.vis;
 
         let fields = self.0.fields();
         let names = fields.iter().map(|f| &f.ident);
