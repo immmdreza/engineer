@@ -23,6 +23,14 @@ impl Retype {
     }
 }
 
+#[derive(Debug, Clone, FromMeta)]
+struct GlobRetype {
+    from: String,
+    to: String,
+    #[darling(rename = "re")]
+    restore: String,
+}
+
 #[derive(FromField, Clone, Debug)]
 #[darling(attributes(engineer), forward_attrs(allow, doc, cfg))]
 struct EngineerField {
@@ -119,17 +127,66 @@ struct EngineerOptions {
     engineer_name: Option<String>,
     builder_func: Option<String>,
 
+    #[darling(multiple, rename = "retype")]
+    retypes: Vec<GlobRetype>,
+    str_retype: Flag,
+    new: Flag,
+
     #[darling(skip)]
     fields_ref: Option<Vec<EngineerField>>,
 }
 
 impl EngineerOptions {
     fn from_derive_input_delegate(input: &DeriveInput) -> Result<EngineerOptions, darling::Error> {
-        let mut s = Self::from_derive_input(input)?;
-        s = s.apply_fields_shorthands();
+        let mut s = Self::from_derive_input(input)?
+            .apply_self_shorthands()
+            .apply_global_retypes()
+            .apply_fields_shorthands();
+
         s.set_fields_ref();
 
         Ok(s)
+    }
+
+    fn apply_self_shorthands(mut self) -> Self {
+        if self.str_retype.is_present() {
+            self.retypes.push(GlobRetype {
+                from: "String".to_string(),
+                to: "impl Into<String>".to_string(),
+                restore: ".into()".to_string(),
+            })
+        }
+
+        if self.new.is_present() {
+            self.builder_func = Some("new".to_string());
+        }
+
+        self
+    }
+
+    fn apply_global_retypes(mut self) -> Self {
+        self.data = self.data.map_struct_fields(|mut f| {
+            let ty_str = if f.is_option() {
+                extract_type_from_option(&f.ty).unwrap()
+            } else {
+                &f.ty
+            }
+            .to_token_stream()
+            .to_string();
+
+            for r in &self.retypes {
+                if ty_str == r.from {
+                    f.retype = Some(Retype {
+                        to: r.to.clone(),
+                        restore: r.restore.clone(),
+                    });
+                }
+            }
+
+            f
+        });
+
+        self
     }
 
     fn apply_fields_shorthands(mut self) -> EngineerOptions {
@@ -200,6 +257,7 @@ impl<'e> EngineerStructDefinition<'e> {
     }
 
     fn struct_definition(&self) -> proc_macro2::TokenStream {
+        let struct_name = &self.0.ident;
         let vis = &self.0.vis;
         let engineer_name = &self.0.engineer_name();
 
@@ -211,6 +269,19 @@ impl<'e> EngineerStructDefinition<'e> {
                 #(
                     #struct_fields
                 )*
+            }
+
+            impl Builder<#struct_name> for #engineer_name {
+                fn done(self) -> #struct_name {
+                    self.__done()
+                }
+            }
+
+            impl From<#engineer_name> for #struct_name
+            {
+                fn from(value: #engineer_name) -> Self {
+                    value.done()
+                }
             }
         }
     }
@@ -273,14 +344,13 @@ impl<'e> EngineerStructDefinition<'e> {
     }
 
     fn done_func(&self) -> proc_macro2::TokenStream {
-        let name = self.0.ident.clone();
-        let vis = &self.0.vis;
+        let name = &self.0.ident;
 
         let fields = self.0.fields();
         let names = fields.iter().map(|f| &f.ident);
 
         quote! {
-            #vis fn done(self) -> #name {
+            fn __done(self) -> #name {
                 #name {
                     #(
                         #names: self.#names,
@@ -355,17 +425,18 @@ struct TraitImpl<'e>(&'e EngineerOptions);
 impl<'e> quote::ToTokens for TraitImpl<'e> {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let name = &self.0.ident;
+        let engineer_name = &self.0.engineer_name();
 
         let fields = self.0.fields();
         let nrm_count = fields.iter().filter(|f| !type_is_option(&f.ty)).count();
         let opt_count = fields.len() - nrm_count;
 
         quote! {
-            impl Engineer for #name {
+            impl Engineer<#engineer_name> for #name {
                 const NORMAL_FIELDS: usize = #nrm_count;
                 const OPTIONAL_FIELDS: usize = #opt_count;
 
-                type Target = #name;
+                type Builder = #engineer_name;
             }
         }
         .to_tokens(tokens);

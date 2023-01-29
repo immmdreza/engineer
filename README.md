@@ -77,7 +77,7 @@ The name of builder function is `engineer` by default, but guess what?
 // ~~~ sniff ~~~
 
 #[derive(Engineer)]
-#[engineer(engineer_name = "IdentityBuilder", builder_func = "builder")]
+#[engineer(builder_func = "builder")]
 struct Identity {
     // ~~~ sniff ~~~
 }
@@ -94,7 +94,7 @@ You want to use this as `new` function:
 // ~~~ sniff ~~~
 
 #[derive(Engineer)]
-#[engineer(engineer_name = "IdentityBuilder", builder_func = "new")]
+#[engineer(builder_func = "new")]
 struct Identity {
     // ~~~ sniff ~~~
 }
@@ -103,6 +103,16 @@ struct Identity {
 
     let identity = Identity::new(0, "immmdreza".to_string())
     // ~~~ sniff ~~~
+```
+
+This can be simplified for special `new` name as builder function:
+
+```rust
+#[derive(Engineer)]
+#[engineer(new)]
+struct Identity {
+    // ~~~ sniff ~~~
+}
 ```
 
 ### Default value for Options
@@ -115,10 +125,10 @@ This value is used if you don't set any other for them.
 // ~~~ sniff ~~~
 
 #[derive(Engineer)]
-#[engineer(engineer_name = "IdentityBuilder", builder_func = "new")]
+#[engineer(new)]
 struct Identity {
     // ~~~ sniff ~~~
-    #[engineer(default_value = "\"fa\".to_string()")]
+    #[engineer(default_value = r#"String::from("fa")"#)]
     lang_code: Option<String>,
 }
 
@@ -146,7 +156,7 @@ You can change types requested in builder processes.
 // ~~~ sniff ~~~
 
 #[derive(Engineer)]
-#[engineer(builder_func = "new")]
+#[engineer(new)]
 struct Identity {
     // ~~~ sniff ~~~
     #[engineer(retype(to = "impl Into<String>", re = ".into()"))]
@@ -173,25 +183,62 @@ Alternatively, for str retypes (like example above), you can use a shorthand `st
     // ~~~ sniff ~~~
 ```
 
+Also you can use retypes globally.
+
+```rust
+#[derive(Engineer)]
+#[engineer(new, retype(from = "String", to = "impl Into<String>", re = ".into()"))]
+struct Identity {
+    // ~~~ sniff ~~~
+}
+```
+
+Or additionally for String retypes:
+
+```rust
+#[derive(Engineer)]
+#[engineer(new, str_retype)]
+struct Identity {
+    // ~~~ sniff ~~~
+}
+```
+
+Both codes above will retype **all** `String` fields into `impl Into<String>` in public api.
+
 Final result
 
 ```rust
 #[derive(Engineer)]
-#[engineer(builder_func = "new")]
+#[engineer(new, str_retype)]
 struct Identity {
     id: usize,
-
-    #[engineer(str_retype)]
     username: String,
-
-    #[engineer(str_retype)]
-    first_name: Option<String>,
-
-    #[engineer(str_retype)]
+    first_name: String,
     last_name: Option<String>,
-
     #[engineer(str_retype, default_value = "\"fa\".to_string()")]
     lang_code: Option<String>,
+}
+
+fn print_identity(ident: impl Into<Identity>) {
+    let ident: Identity = ident.into();
+    println!("{ident:#?}");
+}
+
+fn main() {
+    let ident = Identity::new(1, "immmdreza", "Arash").last_name("Tofani");
+
+    print_identity(ident);
+    // Identity {
+    //     id: 1,
+    //     username: "immmdreza",
+    //     first_name: "Arash",
+    //     last_name: Some(
+    //         "Tofani",
+    //     ),
+    //     lang_code: Some(
+    //         "fa",
+    //     ),
+    // }
 }
 ```
 
