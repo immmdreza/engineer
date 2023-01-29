@@ -45,6 +45,8 @@ fn main() {
         .lang_code("d")
         .done();
 
+    let _ = User::build_default();
+
     let ident = Identity::new(1, "immmdreza", "Arash").last_name("Tofani");
 
     print_identity(ident);

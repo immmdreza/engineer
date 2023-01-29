@@ -22,4 +22,11 @@ where
     fn build(required: Self::Params) -> Self {
         Self::builder(required).done()
     }
+
+    fn build_default() -> Self
+    where
+        Self::Params: Default,
+    {
+        Self::build(Default::default())
+    }
 }
