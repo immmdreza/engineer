@@ -200,6 +200,7 @@ impl<'e> EngineerStructDefinition<'e> {
     }
 
     fn struct_definition(&self) -> proc_macro2::TokenStream {
+        let struct_name = &self.0.ident;
         let vis = &self.0.vis;
         let engineer_name = &self.0.engineer_name();
 
@@ -211,6 +212,12 @@ impl<'e> EngineerStructDefinition<'e> {
                 #(
                     #struct_fields
                 )*
+            }
+
+            impl Builder<#struct_name> for #engineer_name {
+                fn done(self) -> #struct_name {
+                    self.__done()
+                }
             }
         }
     }
@@ -273,14 +280,14 @@ impl<'e> EngineerStructDefinition<'e> {
     }
 
     fn done_func(&self) -> proc_macro2::TokenStream {
-        let name = self.0.ident.clone();
+        let name = &self.0.ident;
         let vis = &self.0.vis;
 
         let fields = self.0.fields();
         let names = fields.iter().map(|f| &f.ident);
 
         quote! {
-            #vis fn done(self) -> #name {
+            fn __done(self) -> #name {
                 #name {
                     #(
                         #names: self.#names,
@@ -355,17 +362,18 @@ struct TraitImpl<'e>(&'e EngineerOptions);
 impl<'e> quote::ToTokens for TraitImpl<'e> {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let name = &self.0.ident;
+        let engineer_name = &self.0.engineer_name();
 
         let fields = self.0.fields();
         let nrm_count = fields.iter().filter(|f| !type_is_option(&f.ty)).count();
         let opt_count = fields.len() - nrm_count;
 
         quote! {
-            impl Engineer for #name {
+            impl Engineer<#engineer_name> for #name {
                 const NORMAL_FIELDS: usize = #nrm_count;
                 const OPTIONAL_FIELDS: usize = #opt_count;
 
-                type Target = #name;
+                type Builder = #engineer_name;
             }
         }
         .to_tokens(tokens);

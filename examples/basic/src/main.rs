@@ -16,9 +16,9 @@ struct User {
 }
 
 fn main() {
-    let user_1 = User::new(0, "immmdreza", "MohammadReza").done();
+    let user_1 = User::new(0_usize, "immmdreza", "MohammadReza").done();
 
-    let user_2 = User::new(1, "jwfly", "Jwfly").lang_code("en").done();
+    let user_2 = User::new(1_usize, "jwfly", "Jwfly").lang_code("en").done();
 
     println!("User 1: {:?}", user_1);
     // User 1: User { id: 0, username: "immmdreza", first_name: "MohammadReza", lang_code: Some("fa"), error_code: Some(0) }
