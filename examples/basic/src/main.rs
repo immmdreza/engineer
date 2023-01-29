@@ -30,25 +30,26 @@ fn print_identity(ident: impl Into<Identity>) {
     println!("{ident:#?}");
 }
 
-fn build_any<E, P, B>(required: P) -> E
+fn build_any<E>(required: E::Params) -> E
 where
-    E: Engineer<B, P>,
-    B: Builder<E>,
+    E: Engineer,
 {
-    let builder = E::get_builder(required);
-    builder.done()
+    E::build(required)
 }
 
 fn main() {
     let user_1: User = User::new(0_usize, "immmdreza", "MohammadReza").into();
 
-    let user_2 = User::new(1_usize, "jwfly", "Jwfly").lang_code("en").done();
+    // Using default Engineer impl (params are passed as a tuple)
+    let user_2 = User::builder((1_usize, "jwfly".to_string(), "Jwfly".to_string()))
+        .lang_code("d")
+        .done();
 
     let ident = Identity::new(1, "immmdreza", "Arash").last_name("Tofani");
 
     print_identity(ident);
 
-    let _ = build_any::<User, _, _>((0_usize, "immmdreza".to_string(), "MohammadReza".to_string()));
+    let _: User = build_any((0_usize, "immmdreza".to_string(), "MohammadReza".to_string()));
 
     println!("User 1: {:?}", user_1);
     // User 1: User { id: 0, username: "immmdreza", first_name: "MohammadReza", lang_code: Some("fa"), error_code: Some(0) }

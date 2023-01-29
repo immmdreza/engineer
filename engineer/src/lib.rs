@@ -6,13 +6,20 @@ pub trait Builder<T> {
     fn done(self) -> T;
 }
 
-pub trait Engineer<B, P>
+pub trait Engineer
 where
     Self: Sized,
-    B: Builder<Self>,
+    Self::Builder: Builder<Self>,
 {
     const NORMAL_FIELDS: usize;
     const OPTIONAL_FIELDS: usize;
 
-    fn get_builder(required: P) -> B;
+    type Builder;
+    type Params;
+
+    fn builder(required: Self::Params) -> Self::Builder;
+
+    fn build(required: Self::Params) -> Self {
+        Self::builder(required).done()
+    }
 }

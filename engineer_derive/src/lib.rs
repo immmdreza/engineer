@@ -124,8 +124,10 @@ struct EngineerOptions {
     vis: syn::Visibility,
     data: darling::ast::Data<darling::util::Ignored, EngineerField>,
 
-    engineer_name: Option<String>,
-    builder_func: Option<String>,
+    #[darling(rename = "engineer_name")]
+    engineer_name_arg: Option<String>,
+    #[darling(rename = "builder_func")]
+    builder_func_arg: Option<String>,
 
     #[darling(multiple, rename = "retype")]
     retypes: Vec<GlobRetype>,
@@ -134,6 +136,10 @@ struct EngineerOptions {
 
     #[darling(skip)]
     fields_ref: Option<Vec<EngineerField>>,
+    #[darling(skip)]
+    engineer_name: Option<syn::Ident>,
+    #[darling(skip)]
+    builder_func: Option<syn::Ident>,
 }
 
 impl EngineerOptions {
@@ -141,7 +147,8 @@ impl EngineerOptions {
         let mut s = Self::from_derive_input(input)?
             .apply_self_shorthands()
             .apply_global_retypes()
-            .apply_fields_shorthands();
+            .apply_fields_shorthands()
+            .set_custom_fields();
 
         s.set_fields_ref();
 
@@ -158,7 +165,7 @@ impl EngineerOptions {
         }
 
         if self.new.is_present() {
-            self.builder_func = Some("new".to_string());
+            self.builder_func_arg = Some("new".to_string());
         }
 
         self
@@ -189,7 +196,7 @@ impl EngineerOptions {
         self
     }
 
-    fn apply_fields_shorthands(mut self) -> EngineerOptions {
+    fn apply_fields_shorthands(mut self) -> Self {
         self.data = self.data.map_struct_fields(|mut f| {
             f.apply_shorthands();
             f
@@ -198,30 +205,38 @@ impl EngineerOptions {
         self
     }
 
+    fn set_custom_fields(mut self) -> Self {
+        self.engineer_name = format_ident!(
+            "{}",
+            self.engineer_name_arg
+                .clone()
+                .unwrap_or(format!("{}Engineer", self.ident))
+        )
+        .into();
+
+        self.builder_func = format_ident!(
+            "{}",
+            self.builder_func_arg
+                .clone()
+                .unwrap_or_else(|| "engineer".to_string())
+        )
+        .into();
+
+        self
+    }
+
     fn set_fields_ref(&mut self) {
         self.fields_ref = Some(self.data.clone().take_struct().unwrap().fields);
     }
 
-    fn engineer_name(&self) -> syn::Ident {
-        format_ident!(
-            "{}",
-            self.engineer_name
-                .clone()
-                .unwrap_or(format!("{}Engineer", self.ident))
-        )
+    /// The name of Engineer struct.
+    fn engineer_name(&self) -> &Option<proc_macro2::Ident> {
+        &self.engineer_name
     }
 
-    fn builder_name(&self) -> syn::Ident {
-        format_ident!(
-            "{}",
-            self.builder_func
-                .clone()
-                .unwrap_or_else(|| "engineer".to_string())
-        )
-    }
-
-    fn fields(&self) -> Vec<EngineerField> {
-        self.data.clone().take_struct().unwrap().fields
+    /// The name of function that builds Engineer struct from main struct.
+    fn builder_name(&self) -> &Option<proc_macro2::Ident> {
+        &self.builder_func
     }
 
     fn fields_ref(&self) -> &Vec<EngineerField> {
@@ -252,7 +267,7 @@ impl<'e, T> FieldsHelpers<'e> for T where T: Iterator<Item = &'e EngineerField> 
 struct EngineerStructDefinition<'e>(&'e EngineerOptions);
 
 impl<'e> EngineerStructDefinition<'e> {
-    fn name(&self) -> proc_macro2::Ident {
+    fn name(&self) -> &Option<proc_macro2::Ident> {
         self.0.engineer_name()
     }
 
@@ -263,6 +278,7 @@ impl<'e> EngineerStructDefinition<'e> {
 
         let fields = self.0.fields_ref();
         let struct_fields = fields.iter().map(|f| f.as_struct_field());
+        let names = fields.iter().map(|f| &f.ident);
 
         quote! {
             #vis struct #engineer_name {
@@ -273,7 +289,11 @@ impl<'e> EngineerStructDefinition<'e> {
 
             impl Builder<#struct_name> for #engineer_name {
                 fn done(self) -> #struct_name {
-                    self.__done()
+                    #struct_name {
+                        #(
+                            #names: self.#names,
+                        )*
+                    }
                 }
             }
 
@@ -326,7 +346,7 @@ impl<'e> EngineerStructDefinition<'e> {
     fn opt_setters(&self) -> proc_macro2::TokenStream {
         let vis = &self.0.vis;
 
-        let fields = self.0.fields();
+        let fields = self.0.fields_ref();
         let opt_fields = fields.iter().filter(|f| f.is_option());
         let opt_names = opt_fields.clone().map(|f| &f.ident);
 
@@ -343,34 +363,15 @@ impl<'e> EngineerStructDefinition<'e> {
         }
     }
 
-    fn done_func(&self) -> proc_macro2::TokenStream {
-        let name = &self.0.ident;
-
-        let fields = self.0.fields();
-        let names = fields.iter().map(|f| &f.ident);
-
-        quote! {
-            fn __done(self) -> #name {
-                #name {
-                    #(
-                        #names: self.#names,
-                    )*
-                }
-            }
-        }
-    }
-
     fn struct_impl(&self) -> proc_macro2::TokenStream {
         let engineer_name = &self.name();
         let new_func = self.new_func();
         let opt_setters = self.opt_setters();
-        let done_func = self.done_func();
 
         quote! {
             impl #engineer_name {
                 #new_func
                 #opt_setters
-                #done_func
             }
         }
     }
@@ -397,7 +398,7 @@ impl<'e> StructImpl<'e> {
         let builder_name = self.0.builder_name();
         let vis = &self.0.vis;
 
-        let fields = self.0.fields();
+        let fields = self.0.fields_ref();
         let nrm_fields = fields.iter().filter(|f| !f.is_option());
         let nrm_names = nrm_fields.clone().map(|f| &f.ident);
 
@@ -427,14 +428,12 @@ impl<'e> quote::ToTokens for TraitImpl<'e> {
         let name = &self.0.ident;
         let engineer_name = &self.0.engineer_name();
 
-        let fields = self.0.fields();
+        let fields = self.0.fields_ref();
         let nrm_fields = fields.iter().filter(|f| !f.is_option());
 
         let nrm_count = nrm_fields.clone().count();
         let opt_count = fields.len() - nrm_count;
-
         let nrm_fields_types = nrm_fields.map(|f| &f.ty);
-        let nrm_fields_types_1 = nrm_fields_types.clone();
 
         let members = (0..nrm_count).map(|f| {
             format!("required.{}", f)
@@ -443,11 +442,14 @@ impl<'e> quote::ToTokens for TraitImpl<'e> {
         });
 
         quote! {
-            impl Engineer<#engineer_name, (#(#nrm_fields_types,)*)> for #name {
+            impl Engineer for #name {
                 const NORMAL_FIELDS: usize = #nrm_count;
                 const OPTIONAL_FIELDS: usize = #opt_count;
 
-                fn get_builder(required: (#(#nrm_fields_types_1,)*)) -> #engineer_name {
+                type Builder = #engineer_name;
+                type Params = (#(#nrm_fields_types,)*);
+
+                fn builder(required: Self::Params) -> Self::Builder {
                     #engineer_name::new(#(#members,)*)
                 }
             }
