@@ -428,15 +428,28 @@ impl<'e> quote::ToTokens for TraitImpl<'e> {
         let engineer_name = &self.0.engineer_name();
 
         let fields = self.0.fields();
-        let nrm_count = fields.iter().filter(|f| !type_is_option(&f.ty)).count();
+        let nrm_fields = fields.iter().filter(|f| !f.is_option());
+
+        let nrm_count = nrm_fields.clone().count();
         let opt_count = fields.len() - nrm_count;
 
+        let nrm_fields_types = nrm_fields.map(|f| &f.ty);
+        let nrm_fields_types_1 = nrm_fields_types.clone();
+
+        let members = (0..nrm_count).map(|f| {
+            format!("required.{}", f)
+                .parse::<proc_macro2::TokenStream>()
+                .unwrap()
+        });
+
         quote! {
-            impl Engineer<#engineer_name> for #name {
+            impl Engineer<#engineer_name, (#(#nrm_fields_types,)*)> for #name {
                 const NORMAL_FIELDS: usize = #nrm_count;
                 const OPTIONAL_FIELDS: usize = #opt_count;
 
-                type Builder = #engineer_name;
+                fn get_builder(required: (#(#nrm_fields_types_1,)*)) -> #engineer_name {
+                    #engineer_name::new(#(#members,)*)
+                }
             }
         }
         .to_tokens(tokens);
