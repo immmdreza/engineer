@@ -1,4 +1,6 @@
-# Engineer
+# Engineer 
+
+[![Build and Test Rust](https://github.com/immmdreza/engineer/actions/workflows/build-and-test.yml/badge.svg?branch=master)](https://github.com/immmdreza/engineer/actions/workflows/build-and-test.yml)
 
 Engineer is a master builder based on `Optional`.
 
