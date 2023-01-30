@@ -242,4 +242,49 @@ fn main() {
 }
 ```
 
+## More about traits
+
+This crate has two main traits: `Builder<T> where T: Engineer` and `Engineer`.
+
+`Engineer` trait has two associated types: `Params` and `Builder`.
+
+- `Params` is a tuple of your required fields types ( fields that are not `Option<_>` )
+- `Builder` is the type of Builder/Engineer class.
+
+Using `Engineer` macro, will make your data class implements `Engineer` trait and also
+creates a Builder struct ( usually named `{struct_name}Engineer` - _i'm thinking about rename_ )
+that implements `Builder<T>` where T is your own struct.
+
+This enables you to do some generic stuff around these traits, As instance:
+
+```rust
+fn build_any<E>(required: E::Params) -> E
+where
+    E: Engineer,
+{
+    E::build(required)
+}
+
+// Or
+
+fn get_builder<E>(required: E::Params) -> E::Builder
+where
+    E: Engineer,
+{
+    E::builder(required)
+}
+```
+
+_Note that `E::Params` is a tuple._
+
+If all of you required fields (E::Param) implement Default, another function `build_default`
+will become available on you struct that creates a default instance with no inputs required.
+
+Additionally, `Engineer` trait has two const fields:
+
+```rust
+- const NORMAL_FIELDS: usize;
+- const OPTIONAL_FIELDS: usize;
+```
+
 🧀

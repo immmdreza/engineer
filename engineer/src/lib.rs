@@ -2,7 +2,11 @@ extern crate engineer_derive;
 
 pub use engineer_derive::*;
 
-pub trait Builder<T> {
+pub trait Builder<T>
+where
+    T: Engineer,
+    T::Builder: Builder<T>,
+{
     fn done(self) -> T;
 }
 

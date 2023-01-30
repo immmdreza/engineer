@@ -37,6 +37,14 @@ where
     E::build(required)
 }
 
+#[allow(dead_code)]
+fn get_builder<E>(required: E::Params) -> E::Builder
+where
+    E: Engineer,
+{
+    E::builder(required)
+}
+
 fn main() {
     let user_1: User = User::new(0_usize, "immmdreza", "MohammadReza").into();
 
