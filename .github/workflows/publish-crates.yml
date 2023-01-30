@@ -1,0 +1,30 @@
+name: Publics crates to crates.io
+
+on:
+  release:
+    branches: ["master"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build
+        run: cargo build --verbose
+      - name: Run tests
+        run: cargo test --verbose
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Publish engineer derive
+        run: cargo publish -p engineer-derive --token ${{ secrets.CratesIoToken }}
+      - name: Publish engineer
+        run: cargo publish -p engineer --token ${{ secrets.CratesIoToken }}

@@ -20,7 +20,8 @@ struct Identity {
     id: usize,
     username: String,
     first_name: String,
-    last_name: Option<String>,
+    #[engineer(default_value = r#"String::from("Tofani")"#)]
+    last_name: String,
     #[engineer(default_value = r#"String::from("fa")"#)]
     lang_code: Option<String>,
 }
@@ -37,6 +38,14 @@ where
     E::build(required)
 }
 
+#[allow(dead_code)]
+fn get_builder<E>(required: E::Params) -> E::Builder
+where
+    E: Engineer,
+{
+    E::builder(required)
+}
+
 fn main() {
     let user_1: User = User::new(0_usize, "immmdreza", "MohammadReza").into();
 
@@ -47,7 +56,7 @@ fn main() {
 
     let _ = User::build_default();
 
-    let ident = Identity::new(1, "immmdreza", "Arash").last_name("Tofani");
+    let ident = Identity::new(1, "immmdreza", "Arash");
 
     print_identity(ident);
 

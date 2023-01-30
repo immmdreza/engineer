@@ -46,14 +46,14 @@ dependencies = [
 
 [[package]]
 name = "engineer"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "engineer_derive",
 ]
 
 [[package]]
 name = "engineer_derive"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "darling",
  "proc-macro2",
