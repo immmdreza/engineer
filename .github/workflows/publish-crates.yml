@@ -25,6 +25,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Publish engineer derive
-        run: cargo publish -p engineer-derive --token ${{ secrets.CratesIoToken }}
+        run: cargo publish -p engineer_derive --token ${{ secrets.CratesIoToken }}
       - name: Publish engineer
         run: cargo publish -p engineer --token ${{ secrets.CratesIoToken }}
