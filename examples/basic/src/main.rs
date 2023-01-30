@@ -1,30 +1,35 @@
+mod backend {
+    use engineer::*;
+
+    #[allow(dead_code)]
+    #[derive(Debug, Engineer)]
+    #[engineer(new, str_retype)]
+    pub struct User {
+        id: usize,
+        username: String,
+        first_name: String,
+        #[engineer(default_value = r#"String::from("fa")"#)]
+        lang_code: Option<String>,
+        #[engineer(default)]
+        error_code: Option<i8>,
+    }
+
+    #[allow(dead_code)]
+    #[derive(Debug, Engineer)]
+    #[engineer(new, str_retype)]
+    pub struct Identity {
+        id: usize,
+        username: String,
+        first_name: String,
+        #[engineer(default_value = r#"String::from("Tofani")"#)]
+        last_name: String,
+        #[engineer(default_value = r#"String::from("fa")"#)]
+        lang_code: Option<String>,
+    }
+}
+
+use backend::*;
 use engineer::*;
-
-#[allow(dead_code)]
-#[derive(Debug, Engineer)]
-#[engineer(new, str_retype)]
-struct User {
-    id: usize,
-    username: String,
-    first_name: String,
-    #[engineer(default_value = r#"String::from("fa")"#)]
-    lang_code: Option<String>,
-    #[engineer(default)]
-    error_code: Option<i8>,
-}
-
-#[allow(dead_code)]
-#[derive(Debug, Engineer)]
-#[engineer(new, str_retype)]
-struct Identity {
-    id: usize,
-    username: String,
-    first_name: String,
-    #[engineer(default_value = r#"String::from("Tofani")"#)]
-    last_name: String,
-    #[engineer(default_value = r#"String::from("fa")"#)]
-    lang_code: Option<String>,
-}
 
 fn print_identity(ident: impl Into<Identity>) {
     let ident: Identity = ident.into();

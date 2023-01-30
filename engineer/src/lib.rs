@@ -2,31 +2,55 @@ extern crate engineer_derive;
 
 pub use engineer_derive::*;
 
+/// An builder that can build an struct of type `T`.
 pub trait Builder<T>
 where
     T: Engineer,
     T::Builder: Builder<T>,
 {
+    /// Returns built struct of type [`T`].
     fn done(self) -> T;
 }
 
+/// An engineer that supports getting built using a builder.
+///
+/// The builder is [`Self::Builder`].
 pub trait Engineer
 where
     Self: Sized,
     Self::Builder: Builder<Self>,
 {
+    /// Required fields count on this struct.
     const NORMAL_FIELDS: usize;
+    /// Optional fields count on this struct.
     const OPTIONAL_FIELDS: usize;
 
+    /// The builder of this struct.
     type Builder;
+    /// The required fields types as a tuple.
     type Params;
 
+    /// Returns the builder struct while all required fields are set.
+    ///
+    /// Params should be passed as a tuple.
     fn builder(required: Self::Params) -> Self::Builder;
 
+    /// Returns the builder while required fields are set to default ( if they have any ).
+    fn default_builder() -> Self::Builder
+    where
+        Self::Params: Default,
+    {
+        Self::builder(Default::default())
+    }
+
+    /// Build a new instance of this struct while all required fields are set.
+    ///
+    /// Params should be passed as a tuple.
     fn build(required: Self::Params) -> Self {
         Self::builder(required).done()
     }
 
+    /// Build a new instance of this struct while required fields are set to default ( if they have any ).
     fn build_default() -> Self
     where
         Self::Params: Default,
