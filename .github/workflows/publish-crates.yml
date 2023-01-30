@@ -2,6 +2,7 @@ name: Publics crates to crates.io
 
 on:
   release:
+    types: [created]
     branches: ["master"]
 
 env:
