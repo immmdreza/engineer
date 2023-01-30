@@ -20,7 +20,7 @@ struct Identity {
     id: usize,
     username: String,
     first_name: String,
-    #[engineer(default)]
+    #[engineer(default_value = r#"String::from("Tofani")"#)]
     last_name: String,
     #[engineer(default_value = r#"String::from("fa")"#)]
     lang_code: Option<String>,

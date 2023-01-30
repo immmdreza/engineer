@@ -58,6 +58,10 @@ impl EngineerField {
             self.default_value = Some("Default::default()".to_string())
             // }
         }
+
+        if self.default_value.is_some() {
+            self.default = Flag::present()
+        }
     }
 
     fn is_option(&self) -> bool {
