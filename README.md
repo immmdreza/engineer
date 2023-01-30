@@ -2,7 +2,7 @@
 
 [![Build and Test Rust](https://github.com/immmdreza/engineer/actions/workflows/build-and-test.yml/badge.svg?branch=master)](https://github.com/immmdreza/engineer/actions/workflows/build-and-test.yml)
 
-Engineer is a master builder based on `Optional`.
+Engineer is a master builder based on `Option`.
 
 It just generates an Engineer (Builder) class for a data model.
 
@@ -12,7 +12,7 @@ Add following as dependencies
 
 ```toml
 [dependencies]
-engineer = "0.1.3"
+engineer = "0.1.6"
 ```
 
 ## Get Started
