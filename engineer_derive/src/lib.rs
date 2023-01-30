@@ -52,12 +52,16 @@ impl EngineerField {
         }
 
         if self.default.is_present() {
+            // if type_is_option(&self.ty) {
+            //     self.default_value = Some("Some(Default::default())".to_string())
+            // } else {
             self.default_value = Some("Default::default()".to_string())
+            // }
         }
     }
 
     fn is_option(&self) -> bool {
-        type_is_option(&self.ty)
+        type_is_option(&self.ty) || self.default.is_present()
     }
 
     fn is_retyped(&self) -> bool {
@@ -68,7 +72,7 @@ impl EngineerField {
         match &self.retype {
             Some(retype) => retype.to.parse().unwrap(),
             None => {
-                let ty = if self.is_option() {
+                let ty = if type_is_option(&self.ty) {
                     extract_type_from_option(&self.ty).unwrap()
                 } else {
                     &self.ty
@@ -173,7 +177,7 @@ impl EngineerOptions {
 
     fn apply_global_retypes(mut self) -> Self {
         self.data = self.data.map_struct_fields(|mut f| {
-            let ty_str = if f.is_option() {
+            let ty_str = if type_is_option(&f.ty) {
                 extract_type_from_option(&f.ty).unwrap()
             } else {
                 &f.ty
@@ -320,9 +324,20 @@ impl<'e> EngineerStructDefinition<'e> {
             .map(|f| match &f.default_value {
                 Some(sec) => {
                     let t = sec.parse::<proc_macro2::TokenStream>().unwrap();
-                    quote!(Some(#t))
+
+                    if type_is_option(&f.ty) {
+                        quote!(Some(#t))
+                    } else {
+                        quote!(#t)
+                    }
                 }
-                _ => quote!(None),
+                _ => {
+                    if type_is_option(&f.ty) {
+                        quote!(None)
+                    } else {
+                        quote!(Default::default())
+                    }
+                }
             });
 
         let func_args = nrm_fields.iter().map(|f| f.as_func_argument());
@@ -356,7 +371,7 @@ impl<'e> EngineerStructDefinition<'e> {
         quote! {
             #(
                 #vis fn #opt_names(mut self, #opt_names: #opt_types) -> Self {
-                    self.#opt_names = Some(#opt_names #opt_restores);
+                    self.#opt_names = (#opt_names #opt_restores).into();
                     self
                 }
             )*

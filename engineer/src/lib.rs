@@ -40,10 +40,13 @@ mod tests {
     use super::*;
 
     #[allow(dead_code)]
-    #[derive(Debug)]
+    #[derive(Debug, Default)]
     enum Gender {
         Male,
         Female,
+
+        #[default]
+        NotSaying,
     }
 
     #[allow(dead_code)]
@@ -52,8 +55,9 @@ mod tests {
     struct Model {
         id: usize,
         first_name: String,
+        #[engineer(default)]
+        gender: Gender,
         last_name: Option<String>,
-        gender: Option<Gender>,
         #[engineer(default_value = r#"String::from("fa")"#)]
         lang_code: Option<String>,
     }
@@ -65,7 +69,7 @@ mod tests {
         assert_eq!(model.id, 1);
         assert_eq!(model.first_name, "Arash");
         assert_eq!(model.last_name, None);
-        assert!(matches!(model.gender, None));
+        assert!(matches!(model.gender, Gender::NotSaying));
         assert_eq!(model.lang_code, Some("fa".to_string()));
     }
 
@@ -80,7 +84,7 @@ mod tests {
         assert_eq!(model.id, 1);
         assert_eq!(model.first_name, "Arash");
         assert_eq!(model.last_name, Some("Tofani".to_string()));
-        assert!(matches!(model.gender, Some(Gender::Male)));
+        assert!(matches!(model.gender, Gender::Male));
         assert_eq!(model.lang_code, Some("en".to_string()));
     }
 }
